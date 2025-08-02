@@ -1,0 +1,68 @@
+name: teamsuitefmaster
+description: "A new Flutter project."
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  local_auth: ^2.1.6
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_launcher_icons: ^0.13.1
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/bd_login.png
+    - assets/images/bottom_curve.png
+    - assets/images/dashboard_bg_icon_add.png
+    - assets/images/dashboard_bg_icon_box.png
+    - assets/images/dashboard_bg_icon_triangle.png
+    - assets/images/dashboard_bg_shapre.png
+    - assets/images/dashboard_bg.png
+    - assets/images/fast_services.png
+    - assets/images/ic_attendance_mark.png
+    - assets/images/ic_attendance_view.png
+    - assets/images/ic_expense_advance.png
+    - assets/images/ic_expense_claim.png
+    - assets/images/ic_expense_history.png
+    - assets/images/ic_expense_travel.png
+    - assets/images/ic_from.png
+    - assets/images/ic_history.png
+    - assets/images/ic_leave_balance.png
+    - assets/images/ic_leave_history.png
+    - assets/images/ic_leave_request.png
+    - assets/images/ic_leave_type.png
+    - assets/images/ic_loan_amount.png
+    - assets/images/ic_loan_balance.png
+    - assets/images/ic_loan_history.png
+    - assets/images/ic_loan_installments.png
+    - assets/images/ic_loan_request.png
+    - assets/images/ic_loan_type.png
+    - assets/images/ic_number_of_leaves_disabled.png
+    - assets/images/ic_number_of_leaves.png
+    - assets/images/ic_payslip.png
+    - assets/images/ic_reports.png
+    - assets/images/ic_to_disabled.png
+    - assets/images/ic_to.png
+    - assets/images/login_crm_background.png
+    - assets/images/logints.png
+    - assets/images/logo_crm.png
+    - assets/images/logo_ts.png
+    - assets/images/splash_image.png
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo_ts.png"
