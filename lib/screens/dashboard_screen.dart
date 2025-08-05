@@ -7,7 +7,14 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 213, 212, 212))),
+        title: const Text(
+          'Dashboard',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color.fromARGB(255, 213, 212, 212),
+          ),
+        ),
         backgroundColor: const Color.fromARGB(255, 12, 12, 120),
         leading: const Icon(Icons.menu),
         foregroundColor: Colors.white,
@@ -65,7 +72,10 @@ class DashboardScreen extends StatelessWidget {
             right: 0,
             child: Stack(
               children: [
-                Image.asset('assets/images/bottom_curve.png', fit: BoxFit.cover),
+                Image.asset(
+                  'assets/images/bottom_curve.png',
+                  fit: BoxFit.cover,
+                ),
                 Positioned(
                   bottom: 80,
                   right: 30,
@@ -77,7 +87,10 @@ class DashboardScreen extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: const Center(
-                      child: Text('+', style: TextStyle(color: Colors.white, fontSize: 24)),
+                      child: Text(
+                        '+',
+                        style: TextStyle(color: Colors.white, fontSize: 24),
+                      ),
                     ),
                   ),
                 ),
@@ -117,51 +130,106 @@ class DashboardScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSection(
-                    context,
-                    'Leave Management',
-                    [
-                      _buildTile(context, 'Request', 'assets/images/ic_leave_request.png'),
-                      _buildTile(context, 'Balance', 'assets/images/ic_leave_balance.png'),
-                      _buildTile(context, 'History', 'assets/images/ic_leave_history.png'),
-                    ],
-                  ),
-                  _buildSection(
-                    context,
-                    'Loan Management',
-                    [
-                      _buildTile(context, 'Request', 'assets/images/ic_loan_request.png'),
-                      _buildTile(context, 'Balance', 'assets/images/ic_loan_balance.png'),
-                      _buildTile(context, 'History', 'assets/images/ic_loan_history.png'),
-                    ],
-                  ),
-                  _buildSection(
-                    context,
-                    'Attendance',
-                    [
-                      _buildTile(context, 'Mark', 'assets/images/ic_attendance_mark.png'),
-                      _buildTile(context, 'View', 'assets/images/ic_attendance_view.png'),
-                      _buildTile(context, 'Request', 'assets/images/ic_leave_request.png'),
-                    ],
-                  ),
-                  _buildSection(
-                    context,
-                    'Expense Management',
-                    [
-                      _buildTile(context, 'Advance', 'assets/images/ic_expense_advance.png'),
-                      _buildTile(context, 'Travel', 'assets/images/ic_expense_travel.png'),
-                      _buildTile(context, 'Claim', 'assets/images/ic_expense_claim.png'),
-                      _buildTile(context, 'History', 'assets/images/ic_expense_history.png'),
-                    ],
-                  ),
-                  _buildSection(
-                    context,
-                    'Document',
-                    [
-                      _buildTile(context, 'Reports', 'assets/images/ic_reports.png'),
-                      _buildTile(context, 'PaySlip', 'assets/images/ic_payslip.png'),
-                    ],
-                  ),
+                  _buildSection(context, 'Leave Management', [
+                    _buildTile(
+                      context,
+                      'Request',
+                      'assets/images/ic_leave_request.png',
+                      '/leave-request',
+                    ),
+                    _buildTile(
+                      context,
+                      'Balance',
+                      'assets/images/ic_leave_balance.png',
+                      '/leave-balance',
+                    ),
+                    _buildTile(
+                      context,
+                      'History',
+                      'assets/images/ic_leave_history.png',
+                      '/leave-history',
+                    ),
+                  ]),
+                  _buildSection(context, 'Loan Management', [
+                    _buildTile(
+                      context,
+                      'Request',
+                      'assets/images/ic_loan_request.png',
+                      '/loan-request',
+                    ),
+                    _buildTile(
+                      context,
+                      'Balance',
+                      'assets/images/ic_loan_balance.png',
+                      '/loan-balance',
+                    ),
+                    _buildTile(
+                      context,
+                      'History',
+                      'assets/images/ic_loan_history.png',
+                      '/loan-history',
+                    ),
+                  ]),
+                  _buildSection(context, 'Attendance', [
+                    _buildTile(
+                      context,
+                      'Mark',
+                      'assets/images/ic_attendance_mark.png',
+                      '/attendance-mark',
+                    ),
+                    _buildTile(
+                      context,
+                      'View',
+                      'assets/images/ic_attendance_view.png',
+                      '/attendance-view',
+                    ),
+                    _buildTile(
+                      context,
+                      'Request',
+                      'assets/images/ic_leave_request.png',
+                      '/attendance-request',
+                    ),
+                  ]),
+                  _buildSection(context, 'Expense Management', [
+                    _buildTile(
+                      context,
+                      'Advance',
+                      'assets/images/ic_expense_advance.png',
+                      '/expense-advance',
+                    ),
+                    _buildTile(
+                      context,
+                      'Travel',
+                      'assets/images/ic_expense_travel.png',
+                      '/expense-travel',
+                    ),
+                    _buildTile(
+                      context,
+                      'Claim',
+                      'assets/images/ic_expense_claim.png',
+                      '/expense-claim',
+                    ),
+                    _buildTile(
+                      context,
+                      'History',
+                      'assets/images/ic_expense_history.png',
+                      '/expense-history',
+                    ),
+                  ]),
+                  _buildSection(context, 'Document', [
+                    _buildTile(
+                      context,
+                      'Reports',
+                      'assets/images/ic_reports.png',
+                      '/reports',
+                    ),
+                    _buildTile(
+                      context,
+                      'PaySlip',
+                      'assets/images/ic_payslip.png',
+                      '/payslip',
+                    ),
+                  ]),
                   const SizedBox(height: 60), // Reduced space at bottom
                 ],
               ),
@@ -198,43 +266,62 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTile(BuildContext context, String label, String imagePath) {
+  Widget _buildTile(
+    BuildContext context,
+    String label,
+    String imagePath,
+    String? route,
+  ) {
     // Calculate a smaller size for each tile to fit in one screen
     final tileWidth = (MediaQuery.of(context).size.width - 48) / 3;
-    
-    return Container(
-      width: tileWidth,
-      height: tileWidth * 0.75, // Reduce height significantly
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            height: tileWidth * 0.3, // Smaller icon
-            child: Image.asset(imagePath),
-          ),
-          const SizedBox(height: 4), // Less spacing
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 11, // Smaller text
-              fontWeight: FontWeight.w500,
-              color: Color.fromARGB(255, 12, 12, 120),
+
+    return GestureDetector(
+      onTap: () {
+        if (route != null) {
+          Navigator.pushNamed(context, route);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('$label feature coming soon!'),
+              backgroundColor: Colors.orange,
             ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+          );
+        }
+      },
+      child: Container(
+        width: tileWidth,
+        height: tileWidth * 0.75, // Reduce height significantly
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              spreadRadius: 1,
+              blurRadius: 3,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              height: tileWidth * 0.3, // Smaller icon
+              child: Image.asset(imagePath),
+            ),
+            const SizedBox(height: 4), // Less spacing
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11, // Smaller text
+                fontWeight: FontWeight.w500,
+                color: Color.fromARGB(255, 12, 12, 120),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }

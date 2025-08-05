@@ -1,15 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart'; // Import for fingerprint authentication
 import 'dashboard_screen.dart';
+import '../services/auth_service.dart';
 
-class LoginScreen extends StatelessWidget {
-  LoginScreen({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   // Controllers for username, password, and PIN fields
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _pinController = TextEditingController();
-  final LocalAuthentication _localAuth = LocalAuthentication(); // Instance for fingerprint authentication
+  final LocalAuthentication _localAuth =
+      LocalAuthentication(); // Instance for fingerprint authentication
+
+  bool _isLoading = false;
 
   Widget _buildTextField(
     BuildContext context,
@@ -41,20 +50,46 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  void _login(BuildContext context) {
-    if (_usernameController.text == 'Manager' &&
-        _passwordController.text == 'FSDEMO123' &&
-        _pinController.text == 'demo') {
-      Navigator.pushReplacement(
+  Future<void> _login(BuildContext context) async {
+    if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
+      _showMessage('Please enter username and password');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final result = await AuthService.login(
+        _usernameController.text,
+        _passwordController.text,
+      );
+
+      if (result['success']) {
+        // Login successful
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/dashboard');
+        }
+      } else {
+        _showMessage(result['message'] ?? 'Login failed');
+      }
+    } catch (e) {
+      _showMessage('Network error. Please try again.');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _showMessage(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(
         context,
-        MaterialPageRoute(builder: (context) => const DashboardScreen()),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid credentials. Please try again.'),
-        ),
-      );
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
@@ -62,9 +97,7 @@ class LoginScreen extends StatelessWidget {
     try {
       final bool didAuthenticate = await _localAuth.authenticate(
         localizedReason: 'Please authenticate to log in',
-        options: const AuthenticationOptions(
-          biometricOnly: true,
-        ),
+        options: const AuthenticationOptions(biometricOnly: true),
       );
 
       if (didAuthenticate) {
@@ -80,11 +113,9 @@ class LoginScreen extends StatelessWidget {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
@@ -154,7 +185,7 @@ class LoginScreen extends StatelessWidget {
 
                 // Login Button
                 ElevatedButton(
-                  onPressed: () => _login(context),
+                  onPressed: _isLoading ? null : () => _login(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 252, 252, 251),
                     padding: const EdgeInsets.symmetric(
@@ -165,14 +196,25 @@ class LoginScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: const Text(
-                    'LOGIN',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.lightBlue,
-                    ),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.lightBlue,
+                            ),
+                          ),
+                        )
+                      : const Text(
+                          'LOGIN',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.lightBlue,
+                          ),
+                        ),
                 ),
                 const SizedBox(height: 20),
 
