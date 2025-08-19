@@ -1,47 +1,147 @@
-import '../services/api_service.dart';
-import '../services/api_constants.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'api_constants.dart';
+import 'mock_api_service.dart';
+import '../config/app_config.dart';
 
 class AuthService {
+  static bool get useMockMode => AppConfig.useMockMode;
+  static String? _token;
+
   static Future<Map<String, dynamic>> login(
-    String email,
-    String password,
-  ) async {
-    // For demo, we'll mock the login
-    // Replace this with real API call: return ApiService.post(ApiConstants.login, body);
+    String username,
+    String password, {
+    String? pin,
+  }) async {
+    try {
+      print('🔐 AuthService: Attempting login for $username');
 
-    // Mock successful login
-    await Future.delayed(const Duration(seconds: 1)); // Simulate network delay
+      // Use mock mode if enabled
+      if (useMockMode) {
+        print('🎭 Using mock mode for development...');
+        final mockResult = await MockApiService.mockLogin(username, password);
 
-    if (email.isNotEmpty && password.isNotEmpty) {
-      return {
-        'success': true,
-        'data': {
-          'user': {
-            'id': 1,
-            'name': 'John Doe',
-            'email': email,
-            'employee_id': 'EMP001',
-          },
-          'token': 'mock_token_123456',
-        },
-        'message': 'Login successful',
-      };
-    } else {
-      return {'success': false, 'data': null, 'message': 'Invalid credentials'};
+        if (mockResult['success']) {
+          // Save mock token
+          final token =
+              mockResult['data']?['token'] ??
+              mockResult['data']?['access_token'] ??
+              mockResult['access_token'];
+
+          print('📦 Mock token received: $token');
+
+          if (token != null) {
+            await _saveToken(token);
+          } else {
+            print('❌ No token found in mock response');
+          }
+        }
+
+        return mockResult;
+      }
+
+      // Real login with AWS API
+      try {
+        final url = Uri.parse(
+          ApiConstants.buildUrl(
+            ApiConstants.currentBaseUrl,
+            ApiConstants.token,
+          ),
+        );
+
+        print('🚀 Token Request: ${url.toString()}');
+
+        final response = await http.post(
+          url,
+          headers: ApiConstants.headers,
+          body: jsonEncode({
+            'Grant_Type': 'password',
+            'Username': username,
+            'Password': password,
+          }),
+        );
+
+        print('📝 Token Response Status: ${response.statusCode}');
+
+        final data = jsonDecode(response.body);
+
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          // Extract token from response
+          final token =
+              data['access_token'] ?? data['token'] ?? data['authToken'];
+
+          if (token != null) {
+            // Save token for future requests
+            await _saveToken(token);
+
+            return {
+              'success': true,
+              'data': data,
+              'message': 'Login successful',
+            };
+          } else {
+            return {
+              'success': false,
+              'message': 'Token not found in response',
+              'data': data,
+            };
+          }
+        } else {
+          return {
+            'success': false,
+            'status': response.statusCode,
+            'message': data['message'] ?? 'Authentication failed',
+            'data': data,
+          };
+        }
+      } catch (e) {
+        print('❌ Authentication error: $e');
+        return {'success': false, 'message': 'Authentication error: $e'};
+      }
+    } catch (e) {
+      print('❌ AuthService: Critical login error - $e');
+      return {'success': false, 'message': 'Login failed: ${e.toString()}'};
     }
   }
 
-  static Future<Map<String, dynamic>> register(
-    Map<String, dynamic> userData,
-  ) async {
-    return ApiService.post(ApiConstants.register, userData);
+  static Future<void> _saveToken(String token) async {
+    print('💾 Saving auth token: $token');
+    _token = token;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('auth_token', token);
   }
 
-  static Future<void> logout() async {
-    await ApiService.logout();
+  static Future<String?> getTokenAsync() async {
+    if (_token != null) return _token;
+
+    final prefs = await SharedPreferences.getInstance();
+    _token = prefs.getString('auth_token');
+    return _token;
+  }
+
+  static String? getToken() {
+    if (_token != null) {
+      return _token;
+    }
+
+    // If token is null, try to load it asynchronously (but return null for now)
+    getTokenAsync().then((token) {
+      _token = token;
+    });
+
+    return _token;
   }
 
   static Future<bool> isLoggedIn() async {
-    return await ApiService.isLoggedIn();
+    final token = await getTokenAsync();
+    return token != null && token.isNotEmpty;
+  }
+
+  static Future<void> logout() async {
+    _token = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('auth_token');
   }
 }

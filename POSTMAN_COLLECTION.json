@@ -1,0 +1,62 @@
+{
+	"info": {
+		"_postman_id": "7967cd10-4a6d-4a74-a05f-23734258b49c",
+		"name": "Team Suite",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "40172363"
+	},
+	"item": [
+		{
+			"name": "MultiTenant",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{CORN_EndPoint}}MultiTenant/GetClientInfo?Pin=demo",
+					"host": [
+						"{{CORN_EndPoint}}MultiTenant"
+					],
+					"path": [
+						"GetClientInfo"
+					],
+					"query": [
+						{
+							"key": "Pin",
+							"value": "demo"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-conn",
+						"value": "{{xConn}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"Grant_Type\": \"password\",\r\n    \"Username\": \"manager\",\r\n    \"Password\": \"FSDEMO123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{CORN_EndPoint}}Token",
+					"host": [
+						"{{CORN_EndPoint}}Token"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

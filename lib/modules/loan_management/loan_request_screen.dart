@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math' show pow;
+import '../../services/loan_service.dart';
 
 class LoanRequestScreen extends StatefulWidget {
   const LoanRequestScreen({super.key});
@@ -14,6 +15,7 @@ class _LoanRequestScreenState extends State<LoanRequestScreen> {
   final _amountController = TextEditingController();
   final _reasonController = TextEditingController();
   final _installmentsController = TextEditingController();
+  bool _isLoading = false;
 
   final List<String> _loanTypes = [
     'Personal Loan',
@@ -228,16 +230,27 @@ class _LoanRequestScreenState extends State<LoanRequestScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _submitLoanRequest,
+                    onPressed: _isLoading ? null : _submitLoanRequest,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromARGB(255, 12, 12, 120),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: const Text(
-                      'Submit Loan Request',
-                      style: TextStyle(fontSize: 16),
-                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                        : const Text(
+                            'Submit Loan Request',
+                            style: TextStyle(fontSize: 16),
+                          ),
                   ),
                 ),
               ],
@@ -264,16 +277,59 @@ class _LoanRequestScreenState extends State<LoanRequestScreen> {
     return '0.00';
   }
 
-  void _submitLoanRequest() {
+  Future<void> _submitLoanRequest() async {
     if (_formKey.currentState!.validate()) {
-      // Here you would typically send the data to your backend
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Loan request submitted successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      Navigator.pop(context);
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final loanData = {
+          'loanType': _selectedLoanType,
+          'amount': _amountController.text,
+          'installments': int.parse(_installmentsController.text),
+          'reason': _reasonController.text,
+          'monthlyPayment': _calculateMonthlyInstallment(),
+        };
+
+        final result = await LoanService.submitLoanRequest(loanData);
+
+        if (mounted) {
+          if (result['success']) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Loan request submitted successfully!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+
+            // Navigate to loan history screen
+            Navigator.pushReplacementNamed(context, '/loan-history');
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(result['message'] ?? 'Failed to submit request'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 

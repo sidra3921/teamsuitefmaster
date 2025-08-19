@@ -18,6 +18,7 @@ import 'modules/loan_management/loan_history_screen.dart';
 import 'modules/attendance/attendance_mark_screen.dart';
 import 'modules/attendance/attendance_view_screen.dart';
 import 'modules/attendance/attendance_request_screen.dart';
+import 'modules/attendance/location_test_screen.dart';
 
 // Expense Management
 import 'modules/expense_management/expense_advance_screen.dart';
@@ -74,6 +75,7 @@ class MyApp extends StatelessWidget {
         '/attendance-mark': (context) => const AttendanceMarkScreen(),
         '/attendance-view': (context) => const AttendanceViewScreen(),
         '/attendance-request': (context) => const AttendanceRequestScreen(),
+        '/location-test': (context) => const LocationTestScreen(),
 
         // Expense Management Routes
         '/expense-advance': (context) => const ExpenseAdvanceScreen(),

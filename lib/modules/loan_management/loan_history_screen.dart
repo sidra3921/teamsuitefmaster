@@ -1,7 +1,85 @@
 import 'package:flutter/material.dart';
+import '../../services/loan_service.dart';
 
-class LoanHistoryScreen extends StatelessWidget {
+class LoanHistoryScreen extends StatefulWidget {
   const LoanHistoryScreen({super.key});
+
+  @override
+  State<LoanHistoryScreen> createState() => _LoanHistoryScreenState();
+}
+
+class _LoanHistoryScreenState extends State<LoanHistoryScreen> {
+  String _statusFilter = 'All';
+  String _yearFilter = '2025';
+  bool _isLoading = true;
+  List<Map<String, dynamic>> _loanHistory = [];
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLoanHistory();
+  }
+
+  Future<void> _fetchLoanHistory() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final result = await LoanService.getLoanHistory();
+
+      if (result['success']) {
+        setState(() {
+          _loanHistory = List<Map<String, dynamic>>.from(result['data'] ?? []);
+          _isLoading = false;
+        });
+        print('📊 Fetched ${_loanHistory.length} loan history records');
+      } else {
+        setState(() {
+          _errorMessage = result['message'] ?? 'Failed to load loan history';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Error: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  List<Map<String, dynamic>> get filteredLoanHistory {
+    return _loanHistory.where((loan) {
+      // Filter by status if not 'All'
+      if (_statusFilter != 'All') {
+        final loanStatus = loan['status'] as String?;
+        if (loanStatus == null) return false;
+
+        final normalizedStatus = loanStatus.toLowerCase();
+        final normalizedFilter = _statusFilter.toLowerCase();
+
+        // Handle different status formats (APPROVED vs Approved)
+        if (!normalizedStatus.contains(normalizedFilter.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // Filter by year
+      if (_yearFilter.isNotEmpty) {
+        final requestDate = loan['requestDate'] as String?;
+        if (requestDate != null && requestDate.isNotEmpty) {
+          final year = requestDate.split('-')[0];
+          if (year != _yearFilter) {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -11,135 +89,201 @@ class LoanHistoryScreen extends StatelessWidget {
         backgroundColor: const Color.fromARGB(255, 12, 12, 120),
         foregroundColor: Colors.white,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Loan Application History',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 12, 12, 120),
+      body: RefreshIndicator(
+        onRefresh: _fetchLoanHistory,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Loan Application History',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 12, 12, 120),
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // Filter Row
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(
-                      labelText: 'Filter by Status',
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: 'All', child: Text('All')),
-                      DropdownMenuItem(
-                        value: 'Approved',
-                        child: Text('Approved'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Pending',
-                        child: Text('Pending'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Rejected',
-                        child: Text('Rejected'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'Completed',
-                        child: Text('Completed'),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      // Implement filter logic
-                    },
-                    value: 'All',
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(
-                      labelText: 'Filter by Year',
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: '2025', child: Text('2025')),
-                      DropdownMenuItem(value: '2024', child: Text('2024')),
-                      DropdownMenuItem(value: '2023', child: Text('2023')),
-                    ],
-                    onChanged: (value) {
-                      // Implement filter logic
-                    },
-                    value: '2025',
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            Expanded(
-              child: ListView(
+              // Filter Row
+              Row(
                 children: [
-                  _buildLoanHistoryCard(
-                    'Personal Loan',
-                    '15 Jan 2025',
-                    '\$ 25,000',
-                    '36 months',
-                    'Home renovation',
-                    'Approved',
-                    Colors.green,
-                    'PL001',
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(
+                        labelText: 'Filter by Status',
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'All', child: Text('All')),
+                        DropdownMenuItem(
+                          value: 'Approved',
+                          child: Text('Approved'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Pending',
+                          child: Text('Pending'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Rejected',
+                          child: Text('Rejected'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Disbursed',
+                          child: Text('Disbursed'),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _statusFilter = value;
+                          });
+                        }
+                      },
+                      value: _statusFilter,
+                    ),
                   ),
-                  _buildLoanHistoryCard(
-                    'Emergency Loan',
-                    '10 Mar 2025',
-                    '\$ 5,000',
-                    '12 months',
-                    'Medical emergency',
-                    'Completed',
-                    Colors.blue,
-                    'EL002',
-                  ),
-                  _buildLoanHistoryCard(
-                    'Educational Loan',
-                    '05 Aug 2025',
-                    '\$ 15,000',
-                    '48 months',
-                    'Masters degree',
-                    'Pending',
-                    Colors.orange,
-                    'EDL003',
-                  ),
-                  _buildLoanHistoryCard(
-                    'Vehicle Loan',
-                    '20 Jun 2025',
-                    '\$ 8,000',
-                    '24 months',
-                    'Car purchase assistance',
-                    'Rejected',
-                    Colors.red,
-                    'VL004',
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(
+                        labelText: 'Filter by Year',
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: '2025', child: Text('2025')),
+                        DropdownMenuItem(value: '2024', child: Text('2024')),
+                        DropdownMenuItem(value: '2023', child: Text('2023')),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _yearFilter = value;
+                          });
+                        }
+                      },
+                      value: _yearFilter,
+                    ),
                   ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+
+              if (_isLoading)
+                const Expanded(
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (_errorMessage != null)
+                Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _errorMessage!,
+                          style: const TextStyle(color: Colors.red),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _fetchLoanHistory,
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else if (filteredLoanHistory.isEmpty)
+                const Expanded(
+                  child: Center(
+                    child: Text(
+                      'No loan history found for the selected filters',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                )
+              else
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: filteredLoanHistory.length,
+                    itemBuilder: (context, index) {
+                      final loan = filteredLoanHistory[index];
+
+                      // Format date from ISO to readable format
+                      final isoDate = loan['requestDate'] as String?;
+                      String formattedDate = 'Unknown date';
+                      if (isoDate != null && isoDate.isNotEmpty) {
+                        try {
+                          final dateTime = DateTime.parse(isoDate);
+                          formattedDate =
+                              '${dateTime.day} ${_getMonthName(dateTime.month)} ${dateTime.year}';
+                        } catch (e) {
+                          formattedDate = isoDate;
+                        }
+                      }
+
+                      return _buildLoanHistoryCard(
+                        loan['type'] ?? 'Unknown',
+                        formattedDate,
+                        '\$ ${loan['amount'] ?? '0.00'}',
+                        '${loan['installments'] ?? 12} months',
+                        loan['reason'] ?? 'Not specified',
+                        loan['status'] ?? 'Unknown',
+                        _getStatusColor(loan['status']),
+                        loan['loanId'] ?? 'Unknown',
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return months[month - 1];
+  }
+
+  Color _getStatusColor(String? status) {
+    if (status == null) return Colors.grey;
+
+    switch (status.toUpperCase()) {
+      case 'APPROVED':
+        return Colors.green;
+      case 'PENDING':
+        return Colors.orange;
+      case 'REJECTED':
+        return Colors.red;
+      case 'DISBURSED':
+        return Colors.blue;
+      default:
+        return Colors.grey;
+    }
   }
 
   Widget _buildLoanHistoryCard(
@@ -152,6 +296,11 @@ class LoanHistoryScreen extends StatelessWidget {
     Color statusColor,
     String loanId,
   ) {
+    // Normalize status for display
+    final displayStatus =
+        status.substring(0, 1).toUpperCase() +
+        status.substring(1).toLowerCase();
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
@@ -191,7 +340,7 @@ class LoanHistoryScreen extends StatelessWidget {
                     border: Border.all(color: statusColor),
                   ),
                   child: Text(
-                    status,
+                    displayStatus,
                     style: TextStyle(
                       color: statusColor,
                       fontWeight: FontWeight.bold,
@@ -271,7 +420,8 @@ class LoanHistoryScreen extends StatelessWidget {
 
             Text('Purpose: $reason', style: const TextStyle(fontSize: 14)),
 
-            if (status == 'Approved') ...[
+            if (displayStatus == 'Approved' ||
+                displayStatus == 'Disbursed') ...[
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -279,6 +429,7 @@ class LoanHistoryScreen extends StatelessWidget {
                   ElevatedButton.icon(
                     onPressed: () {
                       // View loan details
+                      // TODO: Implement view details functionality
                     },
                     icon: const Icon(Icons.visibility, size: 16),
                     label: const Text('View Details'),
@@ -290,7 +441,7 @@ class LoanHistoryScreen extends StatelessWidget {
                   ),
                 ],
               ),
-            ] else if (status == 'Pending') ...[
+            ] else if (displayStatus == 'Pending') ...[
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -298,6 +449,7 @@ class LoanHistoryScreen extends StatelessWidget {
                   TextButton(
                     onPressed: () {
                       // Cancel loan request
+                      // TODO: Implement cancel functionality
                     },
                     child: const Text(
                       'Cancel',
@@ -308,6 +460,7 @@ class LoanHistoryScreen extends StatelessWidget {
                   ElevatedButton(
                     onPressed: () {
                       // Edit loan request
+                      // TODO: Implement edit functionality
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromARGB(255, 12, 12, 120),
@@ -315,25 +468,6 @@ class LoanHistoryScreen extends StatelessWidget {
                       minimumSize: const Size(80, 32),
                     ),
                     child: const Text('Edit'),
-                  ),
-                ],
-              ),
-            ] else if (status == 'Completed') ...[
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      // Download completion certificate
-                    },
-                    icon: const Icon(Icons.download, size: 16),
-                    label: const Text('Certificate'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(120, 32),
-                    ),
                   ),
                 ],
               ),

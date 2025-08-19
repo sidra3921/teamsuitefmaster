@@ -240,9 +240,14 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
 
       try {
         final leaveData = {
-          'leave_type': _selectedLeaveType,
-          'from_date': _fromDate?.toString().split(' ')[0],
-          'to_date': _toDate?.toString().split(' ')[0],
+          'leaveType':
+              _selectedLeaveType, // Changed key from 'leave_type' to 'leaveType'
+          'fromDate': _fromDate?.toString().split(
+            ' ',
+          )[0], // Changed key from 'from_date' to 'fromDate'
+          'toDate': _toDate?.toString().split(
+            ' ',
+          )[0], // Changed key from 'to_date' to 'toDate'
           'days': _calculateDays(),
           'reason': _reasonController.text,
         };
@@ -257,7 +262,9 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
                 backgroundColor: Colors.green,
               ),
             );
-            Navigator.pop(context);
+
+            // Navigate to leave history screen instead of just popping
+            Navigator.pushReplacementNamed(context, '/leave-history');
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
